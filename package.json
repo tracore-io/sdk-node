@@ -1,0 +1,64 @@
+{
+  "name": "@tracore/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Official TypeScript SDK for the Tracore API",
+  "license": "MIT",
+  "author": "Tracore",
+  "homepage": "https://github.com/tracore-io/sdk-node#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tracore-io/sdk-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tracore-io/sdk-node/issues"
+  },
+  "keywords": [
+    "tracore",
+    "sdk",
+    "openapi",
+    "document-extraction",
+    "api-client",
+    "typescript"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "tracoreApiVersion": "0.5.0",
+  "scripts": {
+    "generate": "openapi-ts",
+    "build": "tsup",
+    "clean": "git clean -xdf .cache dist .turbo node_modules",
+    "lint": "oxlint . && eslint",
+    "lint:fix": "oxlint --fix . && eslint --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.94.0",
+    "@types/node": "25.4.0",
+    "@typescript-eslint/parser": "^8.57.0",
+    "eslint": "^9.39.4",
+    "globals": "^17.4.0",
+    "oxlint": "^1.54.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0"
+  }
+}

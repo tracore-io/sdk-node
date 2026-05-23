@@ -1,0 +1,6 @@
+# The downloaded OpenAPI spec is never committed; only the generated output is.
+openapi.yaml
+dist/
+node_modules/
+.turbo/
+.cache/
