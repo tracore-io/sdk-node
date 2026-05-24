@@ -1,5 +1,6 @@
 export { TracoreClient } from './client';
 export { TracoreError } from './helpers/errors';
+export { API_VERSION } from './version';
 export { WorkspacesResource } from './resources/workspaces';
 export { SchemasResource } from './resources/schemas';
 export { DocumentsResource } from './resources/documents';

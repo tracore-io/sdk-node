@@ -5,6 +5,7 @@ import type { Run } from './generated/types.gen';
 import type { ClientOptions, ExtractOptions } from './types';
 import { normalizeError } from './helpers/errors';
 import { pollRun } from './helpers/polling';
+import { API_VERSION } from './version';
 import { WorkspacesResource } from './resources/workspaces';
 import { SchemasResource } from './resources/schemas';
 import { DocumentsResource } from './resources/documents';
@@ -54,6 +55,13 @@ export class TracoreClient {
 	/** User-scoped resources for the authenticated user. */
 	readonly user: UserResource;
 
+	/**
+	 * The Tracore API contract version this SDK was generated from (e.g. `0.5.0`).
+	 * Sent on every request as the `Tracore-Version` header. This is the API
+	 * contract version, not this package's own npm version.
+	 */
+	readonly apiVersion: string = API_VERSION;
+
 	private readonly httpClient: Client;
 	private readonly defaultEnv?: 'production' | 'staging' | 'development';
 
@@ -68,6 +76,8 @@ export class TracoreClient {
 
 		this.httpClient.interceptors.request.use((request) => {
 			request.headers.set('x-api-key', options.apiKey);
+			// Advisory header: tells the API which contract version this SDK targets.
+			request.headers.set('Tracore-Version', API_VERSION);
 			return request;
 		});
 

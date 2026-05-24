@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Resolve dispatch inputs
         id: input
@@ -64,12 +64,24 @@ jobs:
             echo "DIFF_EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Pin .api-version
+      - name: Pin API version
         env:
           API_VERSION: ${{ steps.input.outputs.api_version }}
         run: |
           set -euo pipefail
+          # The API contract version has three in-repo mirrors that MUST move together:
+          #   .api-version              - plain pin (CI + humans read it)
+          #   src/version.ts            - the runtime const (Tracore-Version header, client.apiVersion)
+          #   package.json#tracoreApiVersion - manifest field (set in the bump step below)
+          # This step writes the first two; the bump step writes the third in the same run.
           printf '%s\n' "$API_VERSION" > .api-version
+          cat > src/version.ts <<EOF
+          // The Tracore API contract version this SDK was generated from (the \`api-vX.Y.Z\`
+          // release / .api-version), NOT this package's own npm version. Reported via the
+          // \`Tracore-Version\` request header and \`TracoreClient#apiVersion\`.
+          // Kept in sync with .api-version and package.json#tracoreApiVersion by sync.yml.
+          export const API_VERSION = '${API_VERSION}';
+          EOF
 
       - name: Download spec
         env:
@@ -126,13 +138,46 @@ jobs:
           fi
           npm version "$LEVEL" --no-git-tag-version >/dev/null
           NEW="$(node -p "require('./package.json').version")"
-          # Keep the pinned API version in the manifest in sync with .api-version.
+          # Keep the pinned API contract version in the manifest in sync with .api-version
+          # (third of the three mirrors; the others are written in "Pin API version").
           node -e "const fs=require('fs');const p=require('./package.json');p.tracoreApiVersion=process.env.API_VERSION;fs.writeFileSync('./package.json',JSON.stringify(p,null,2)+'\n');"
           {
             echo "current=$CURRENT"
             echo "new=$NEW"
             echo "level=$LEVEL"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Refresh README compat line
+        env:
+          API_VERSION: ${{ steps.input.outputs.api_version }}
+        run: |
+          set -euo pipefail
+          # Idempotent, marker-delimited "Built against" line so it never drifts from
+          # .api-version. Inserted right after the H1 if absent; replaced in place if present.
+          MARKER_START="<!-- tracore-api-version:start -->"
+          MARKER_END="<!-- tracore-api-version:end -->"
+          LINE="> Built against Tracore API v${API_VERSION}."
+          node - "$MARKER_START" "$MARKER_END" "$LINE" <<'NODE'
+          const fs = require('fs');
+          const [start, end, line] = process.argv.slice(2);
+          const path = 'README.md';
+          let md = fs.readFileSync(path, 'utf8');
+          const block = `${start}\n${line}\n${end}`;
+          const re = new RegExp(`${start}[\\s\\S]*?${end}`);
+          if (re.test(md)) {
+            md = md.replace(re, block);
+          } else {
+            // Insert after the first H1 (the title); fall back to prepending.
+            const m = md.match(/^# .*$/m);
+            if (m) {
+              const idx = md.indexOf(m[0]) + m[0].length;
+              md = md.slice(0, idx) + `\n\n${block}` + md.slice(idx);
+            } else {
+              md = `${block}\n\n${md}`;
+            }
+          }
+          fs.writeFileSync(path, md);
+          NODE
 
       - name: Run tests
         run: |
