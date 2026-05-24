@@ -1,8 +1,8 @@
 import type { Client } from '../generated/client';
 import * as sdk from '../generated/sdk.gen';
 import type { UpdateEnvironmentRequest } from '../generated/types.gen';
-import type { PaginationParams } from '../types';
 import { normalizeError } from '../helpers/errors';
+import type { PaginationParams } from '../types';
 /** Manage environments within a workspace. */
 export class EnvironmentsResource {
 	/** @internal */
@@ -29,10 +29,7 @@ export class EnvironmentsResource {
 	 * @param workspace - Workspace slug
 	 * @param envSlug - Environment slug (production, staging, or development)
 	 */
-	async get(
-		workspace: string,
-		envSlug: 'production' | 'staging' | 'development',
-	) {
+	async get(workspace: string, envSlug: 'production' | 'staging' | 'development') {
 		const { data, error } = await sdk.getEnvironmentBySlug({
 			client: this.client,
 			path: { slug: workspace, envSlug },

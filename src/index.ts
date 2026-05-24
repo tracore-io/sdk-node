@@ -1,62 +1,59 @@
 export { TracoreClient } from './client';
-export { TracoreError } from './helpers/errors';
-export { API_VERSION } from './version';
-export { WorkspacesResource } from './resources/workspaces';
-export { SchemasResource } from './resources/schemas';
-export { DocumentsResource } from './resources/documents';
-export { RunsResource } from './resources/runs';
-export { WebhooksResource } from './resources/webhooks';
-export { EnvironmentsResource } from './resources/environments';
-export { UserResource } from './resources/user';
-export { UserProviderKeysResource } from './resources/user-provider-keys';
-
-export type {
-	ClientOptions,
-	PaginationParams,
-	EnvironmentParams,
-	ExtractOptions,
-} from './types';
-
-export type { PollOptions } from './helpers/polling';
-export type { SetProviderKeyRequest } from './resources/user-provider-keys';
-
 // Re-export all generated API types for consumers
 export type {
-	Workspace,
+	CreateDocumentRequest,
+	CreateSchemaFamilyRequest,
+	CreateWebhookRequest,
 	CreateWorkspaceRequest,
-	UpdateWorkspaceRequest,
+	Document,
+	DocumentExtractRequest,
 	Environment,
 	EnvironmentQuery,
 	EnvironmentWithResolved,
-	UpdateEnvironmentRequest,
-	ResolvedModel,
-	Document,
-	CreateDocumentRequest,
-	SchemaFamily,
-	SchemaFamilyWithVersion,
-	SchemaVersion,
-	CreateSchemaFamilyRequest,
-	Run,
-	RunListItem,
-	ExtractRequest,
-	DocumentExtractRequest,
+	ErrorResponse,
 	ExtractAcceptedResponse,
-	WebhookEndpoint,
-	WebhookDelivery,
-	CreateWebhookRequest,
-	UpdateWebhookRequest,
-	SendTestWebhookRequest,
-	UserPlanResponse,
-	RunErrorCode,
+	ExtractRequest,
+	KeySource,
+	KeyTestStatus,
+	PaginatedResponse,
 	ProviderKey,
 	ProviderKeyListResponse,
 	ProviderKeyPutRequest,
 	ProviderKeyTestResponse,
 	ProviderKeyUsage,
 	ProviderType,
-	KeySource,
-	KeyTestStatus,
 	Residency,
-	ErrorResponse,
-	PaginatedResponse,
+	ResolvedModel,
+	Run,
+	RunErrorCode,
+	RunListItem,
+	SchemaFamily,
+	SchemaFamilyWithVersion,
+	SchemaVersion,
+	SendTestWebhookRequest,
+	UpdateEnvironmentRequest,
+	UpdateWebhookRequest,
+	UpdateWorkspaceRequest,
+	UserPlanResponse,
+	WebhookDelivery,
+	WebhookEndpoint,
+	Workspace,
 } from './generated/types.gen';
+export { TracoreError } from './helpers/errors';
+export type { PollOptions } from './helpers/polling';
+export { DocumentsResource } from './resources/documents';
+export { EnvironmentsResource } from './resources/environments';
+export { RunsResource } from './resources/runs';
+export { SchemasResource } from './resources/schemas';
+export { UserResource } from './resources/user';
+export type { SetProviderKeyRequest } from './resources/user-provider-keys';
+export { UserProviderKeysResource } from './resources/user-provider-keys';
+export { WebhooksResource } from './resources/webhooks';
+export { WorkspacesResource } from './resources/workspaces';
+export type {
+	ClientOptions,
+	EnvironmentParams,
+	ExtractOptions,
+	PaginationParams,
+} from './types';
+export { API_VERSION } from './version';

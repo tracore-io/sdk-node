@@ -1,18 +1,18 @@
-import { createClient, createConfig } from './generated/client';
 import type { Client } from './generated/client';
+import { createClient, createConfig } from './generated/client';
 import * as sdk from './generated/sdk.gen';
 import type { Run } from './generated/types.gen';
-import type { ClientOptions, ExtractOptions } from './types';
 import { normalizeError } from './helpers/errors';
 import { pollRun } from './helpers/polling';
-import { API_VERSION } from './version';
-import { WorkspacesResource } from './resources/workspaces';
-import { SchemasResource } from './resources/schemas';
 import { DocumentsResource } from './resources/documents';
-import { RunsResource } from './resources/runs';
-import { WebhooksResource } from './resources/webhooks';
-import { UserResource } from './resources/user';
 import { EnvironmentsResource } from './resources/environments';
+import { RunsResource } from './resources/runs';
+import { SchemasResource } from './resources/schemas';
+import { UserResource } from './resources/user';
+import { WebhooksResource } from './resources/webhooks';
+import { WorkspacesResource } from './resources/workspaces';
+import type { ClientOptions, ExtractOptions } from './types';
+import { API_VERSION } from './version';
 
 const DEFAULT_BASE_URL = 'https://api.tracore.io';
 
@@ -173,8 +173,7 @@ export class TracoreClient {
 		}
 
 		if (options?.poll) {
-			const pollOpts =
-				typeof options.poll === 'object' ? options.poll : undefined;
+			const pollOpts = typeof options.poll === 'object' ? options.poll : undefined;
 			return pollRun(this.httpClient, runId, pollOpts);
 		}
 

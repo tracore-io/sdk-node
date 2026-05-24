@@ -14,7 +14,7 @@ export class UserResource {
 	readonly providerKeys: UserProviderKeysResource;
 
 	/** @internal */
-	constructor(private readonly client: Client) {
+	constructor(client: Client) {
 		this.providerKeys = new UserProviderKeysResource(client);
 	}
 }

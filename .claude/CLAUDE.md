@@ -49,8 +49,15 @@ pnpm install      # standalone install (no monorepo workspace)
 pnpm generate     # regenerate src/generated/ from openapi.yaml (openapi-ts)
 pnpm build        # tsup -> dist (ESM + CJS + d.ts)
 pnpm typecheck    # tsc --noEmit
-pnpm lint         # oxlint . && eslint
+pnpm lint         # biome check . (lint + format check; generated code excluded)
+pnpm lint:fix     # biome check --write . (apply safe lint + format fixes)
+pnpm format       # biome format --write .
 ```
+
+Linting and formatting use **Biome** (`biome.json`), a single tool replacing the prior
+oxlint + eslint setup. CI runs `pnpm lint` on every PR via `.github/workflows/validate.yml`
+(install -> lint -> typecheck -> build). Note this diverges from the monorepo, which still
+uses oxlint + oxfmt + eslint; this standalone repo favors one zero-dependency toolchain.
 
 ## Publish
 

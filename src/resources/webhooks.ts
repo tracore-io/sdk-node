@@ -2,11 +2,11 @@ import type { Client } from '../generated/client';
 import * as sdk from '../generated/sdk.gen';
 import type {
 	CreateWebhookRequest,
-	UpdateWebhookRequest,
 	SendTestWebhookRequest,
+	UpdateWebhookRequest,
 } from '../generated/types.gen';
-import type { PaginationParams, EnvironmentParams } from '../types';
 import { normalizeError } from '../helpers/errors';
+import type { EnvironmentParams, PaginationParams } from '../types';
 
 /** Manage webhook endpoints and deliveries. */
 export class WebhooksResource {
@@ -26,11 +26,7 @@ export class WebhooksResource {
 	 * @param workspace - Workspace slug
 	 * @param schemaKey - Schema key identifier
 	 */
-	async list(
-		workspace: string,
-		schemaKey: string,
-		params?: PaginationParams & EnvironmentParams,
-	) {
+	async list(workspace: string, schemaKey: string, params?: PaginationParams & EnvironmentParams) {
 		const { data, error } = await sdk.getWebhooks({
 			client: this.client,
 			path: { slug: workspace, schemaKey },

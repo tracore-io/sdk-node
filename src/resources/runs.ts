@@ -1,8 +1,8 @@
 import type { Client } from '../generated/client';
 import * as sdk from '../generated/sdk.gen';
-import type { PaginationParams, EnvironmentParams } from '../types';
 import { normalizeError } from '../helpers/errors';
-import { pollRun, type PollOptions } from '../helpers/polling';
+import { type PollOptions, pollRun } from '../helpers/polling';
+import type { EnvironmentParams, PaginationParams } from '../types';
 
 /** Manage extraction runs. */
 export class RunsResource {
@@ -22,11 +22,7 @@ export class RunsResource {
 	 * @param workspace - Workspace slug
 	 * @param schemaKey - Schema key identifier
 	 */
-	async list(
-		workspace: string,
-		schemaKey: string,
-		params?: PaginationParams & EnvironmentParams,
-	) {
+	async list(workspace: string, schemaKey: string, params?: PaginationParams & EnvironmentParams) {
 		const { data, error } = await sdk.getRuns({
 			client: this.client,
 			path: { slug: workspace, schemaKey },

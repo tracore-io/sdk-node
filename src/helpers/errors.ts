@@ -24,12 +24,7 @@ export class TracoreError extends Error {
 	/** Additional error details, if provided by the API. */
 	readonly details?: Record<string, unknown>;
 
-	constructor(
-		status: number,
-		message: string,
-		code?: string,
-		details?: Record<string, unknown>,
-	) {
+	constructor(status: number, message: string, code?: string, details?: Record<string, unknown>) {
 		super(message);
 		this.name = 'TracoreError';
 		this.status = status;

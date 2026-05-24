@@ -31,9 +31,5 @@ export default defineConfig({
 			},
 		},
 	},
-	plugins: [
-		'@hey-api/typescript',
-		'@hey-api/sdk',
-		{ name: '@hey-api/client-fetch', bundle: true },
-	],
+	plugins: ['@hey-api/typescript', '@hey-api/sdk', { name: '@hey-api/client-fetch', bundle: true }],
 });

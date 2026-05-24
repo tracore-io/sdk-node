@@ -1,8 +1,8 @@
 import type { Client } from '../generated/client';
 import * as sdk from '../generated/sdk.gen';
 import type { CreateDocumentRequest } from '../generated/types.gen';
-import type { PaginationParams, EnvironmentParams } from '../types';
 import { normalizeError } from '../helpers/errors';
+import type { EnvironmentParams, PaginationParams } from '../types';
 
 /** Manage documents. */
 export class DocumentsResource {
@@ -27,11 +27,7 @@ export class DocumentsResource {
 	 * const { data, total } = await client.documents.list('my-workspace', 'invoice');
 	 * ```
 	 */
-	async list(
-		workspace: string,
-		schemaKey: string,
-		params?: PaginationParams & EnvironmentParams,
-	) {
+	async list(workspace: string, schemaKey: string, params?: PaginationParams & EnvironmentParams) {
 		const { data, error } = await sdk.getDocuments({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
