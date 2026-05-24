@@ -1,0 +1,132 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type "publish" to confirm a real npm publish
+        required: true
+        default: ''
+
+# id-token: write is required for npm provenance / OIDC Trusted Publishing.
+# contents: read is all the publish needs from the repo.
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check publish enabled
+        id: enable
+        env:
+          PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
+        run: |
+          set -euo pipefail
+          # Master switch. Off => green no-op (no install/build/publish run).
+          if [ "$PUBLISH_ENABLED" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::publishing disabled (set repo variable PUBLISH_ENABLED=true once the npm org + trusted publisher are configured)"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.4
+
+      # Node 24 ships npm >= 11.5.1, which Trusted Publishing (OIDC) requires.
+      # registry-url writes an .npmrc so npm publish targets the public registry.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: 'pnpm'
+
+      - name: Guardrails
+        env:
+          EVENT: ${{ github.event_name }}
+          CONFIRM: ${{ github.event.inputs.confirm }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          # Deliberate confirm only for manual dispatch. On push:main the guard is
+          # branch protection (a reviewed merge) plus the idempotency check below.
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "$CONFIRM" != "publish" ]; then
+            echo "::error::Refusing to publish: type 'publish' in the confirm input to proceed."
+            exit 1
+          fi
+
+          # Publish only from main or a release tag (vX.Y.Z). A push:main run is
+          # refs/heads/main by definition; this also bounds manual dispatches.
+          case "$REF" in
+            refs/heads/main) ;;
+            refs/tags/v*) ;;
+            *)
+              echo "::error::Refusing to publish from '$REF'. Publish only from main or a vX.Y.Z release tag."
+              exit 1
+              ;;
+          esac
+
+          # Never publish a dirty tree.
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Working tree is dirty; refusing to publish."
+            git status --short
+            exit 1
+          fi
+
+          # Confirm npm is recent enough for Trusted Publishing / provenance.
+          NPM_VERSION="$(npm --version)"
+          echo "npm version: $NPM_VERSION"
+
+      - name: Idempotency check
+        id: idem
+        run: |
+          set -euo pipefail
+          # Definitive gate (npm analog of api-release.yml's tag check): if package.json's
+          # version is already on npm, this is a no-op. So a no-version-bump merge does
+          # nothing and a version is never double-published.
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "Resolving ${NAME}@${VERSION} on npm..."
+          PUBLISHED="$(npm view "${NAME}@${VERSION}" version 2>/dev/null || true)"
+          if [ "$PUBLISHED" = "$VERSION" ]; then
+            echo "${NAME}@${VERSION} is already published; nothing to do (bump the version to publish)."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "${NAME}@${VERSION} is not on npm; proceeding to publish."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.enable.outputs.enabled == 'true' && steps.idem.outputs.should_publish == 'true'
+        run: pnpm install
+
+      - name: Build
+        if: steps.enable.outputs.enabled == 'true' && steps.idem.outputs.should_publish == 'true'
+        run: pnpm build
+
+      - name: Publish to npm
+        if: steps.enable.outputs.enabled == 'true' && steps.idem.outputs.should_publish == 'true'
+        env:
+          # Fallback only: when an NPM_TOKEN secret is present it is used; otherwise
+          # npm falls back to OIDC Trusted Publishing (the recommended path, no
+          # long-lived token). The Trusted Publisher must map this repo + workflow.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance

@@ -1,7 +1,7 @@
 import type { Client } from '../generated/client';
-import type { Run } from '../generated/types.gen';
 import { getRunById } from '../generated/sdk.gen';
-import { TracoreError, normalizeError } from './errors';
+import type { Run } from '../generated/types.gen';
+import { normalizeError, TracoreError } from './errors';
 
 /** Options for polling a run until completion. */
 export interface PollOptions {
@@ -46,8 +46,5 @@ export async function pollRun(
 		await new Promise((resolve) => setTimeout(resolve, intervalMs));
 	}
 
-	throw new TracoreError(
-		408,
-		`Polling timed out after ${maxAttempts} attempts for run ${runId}`,
-	);
+	throw new TracoreError(408, `Polling timed out after ${maxAttempts} attempts for run ${runId}`);
 }

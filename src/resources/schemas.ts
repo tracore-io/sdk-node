@@ -1,8 +1,8 @@
 import type { Client } from '../generated/client';
 import * as sdk from '../generated/sdk.gen';
 import type { CreateSchemaFamilyRequest } from '../generated/types.gen';
-import type { PaginationParams } from '../types';
 import { normalizeError } from '../helpers/errors';
+import type { PaginationParams } from '../types';
 
 /** Manage schema families and versions. */
 export class SchemasResource {
@@ -79,11 +79,7 @@ export class SchemasResource {
 	 * @param workspace - Workspace slug
 	 * @param schemaKey - Schema key identifier
 	 */
-	async listVersions(
-		workspace: string,
-		schemaKey: string,
-		params?: PaginationParams,
-	) {
+	async listVersions(workspace: string, schemaKey: string, params?: PaginationParams) {
 		const { data, error } = await sdk.getSchemaVersions({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
@@ -100,11 +96,7 @@ export class SchemasResource {
 	 * @param schemaKey - Schema key identifier
 	 * @param versionNumber - Version number
 	 */
-	async getVersion(
-		workspace: string,
-		schemaKey: string,
-		versionNumber: number,
-	) {
+	async getVersion(workspace: string, schemaKey: string, versionNumber: number) {
 		const { data, error } = await sdk.getSchemaVersion({
 			client: this.client,
 			path: { slug: workspace, schemaKey, versionNumber },

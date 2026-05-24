@@ -1,6 +1,6 @@
 {
   "name": "@tracore/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Official TypeScript SDK for the Tracore API",
   "license": "MIT",
@@ -46,19 +46,16 @@
     "generate": "openapi-ts",
     "build": "tsup",
     "clean": "git clean -xdf .cache dist .turbo node_modules",
-    "lint": "oxlint . && eslint",
-    "lint:fix": "oxlint --fix . && eslint --fix",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
     "@hey-api/openapi-ts": "0.94.0",
     "@types/node": "25.4.0",
-    "@typescript-eslint/parser": "^8.57.0",
-    "eslint": "^9.39.4",
-    "globals": "^17.4.0",
-    "oxlint": "^1.54.0",
     "tsup": "^8.5.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.0"
+    "typescript": "^5.9.3"
   }
 }

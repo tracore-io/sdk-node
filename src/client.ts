@@ -1,17 +1,18 @@
-import { createClient, createConfig } from './generated/client';
 import type { Client } from './generated/client';
+import { createClient, createConfig } from './generated/client';
 import * as sdk from './generated/sdk.gen';
 import type { Run } from './generated/types.gen';
-import type { ClientOptions, ExtractOptions } from './types';
 import { normalizeError } from './helpers/errors';
 import { pollRun } from './helpers/polling';
-import { WorkspacesResource } from './resources/workspaces';
-import { SchemasResource } from './resources/schemas';
 import { DocumentsResource } from './resources/documents';
-import { RunsResource } from './resources/runs';
-import { WebhooksResource } from './resources/webhooks';
-import { UserResource } from './resources/user';
 import { EnvironmentsResource } from './resources/environments';
+import { RunsResource } from './resources/runs';
+import { SchemasResource } from './resources/schemas';
+import { UserResource } from './resources/user';
+import { WebhooksResource } from './resources/webhooks';
+import { WorkspacesResource } from './resources/workspaces';
+import type { ClientOptions, ExtractOptions } from './types';
+import { API_VERSION } from './version';
 
 const DEFAULT_BASE_URL = 'https://api.tracore.io';
 
@@ -54,6 +55,13 @@ export class TracoreClient {
 	/** User-scoped resources for the authenticated user. */
 	readonly user: UserResource;
 
+	/**
+	 * The Tracore API contract version this SDK was generated from (e.g. `0.5.0`).
+	 * Sent on every request as the `Tracore-Version` header. This is the API
+	 * contract version, not this package's own npm version.
+	 */
+	readonly apiVersion: string = API_VERSION;
+
 	private readonly httpClient: Client;
 	private readonly defaultEnv?: 'production' | 'staging' | 'development';
 
@@ -68,6 +76,8 @@ export class TracoreClient {
 
 		this.httpClient.interceptors.request.use((request) => {
 			request.headers.set('x-api-key', options.apiKey);
+			// Advisory header: tells the API which contract version this SDK targets.
+			request.headers.set('Tracore-Version', API_VERSION);
 			return request;
 		});
 
@@ -163,8 +173,7 @@ export class TracoreClient {
 		}
 
 		if (options?.poll) {
-			const pollOpts =
-				typeof options.poll === 'object' ? options.poll : undefined;
+			const pollOpts = typeof options.poll === 'object' ? options.poll : undefined;
 			return pollRun(this.httpClient, runId, pollOpts);
 		}
 

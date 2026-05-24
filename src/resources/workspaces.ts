@@ -1,11 +1,8 @@
 import type { Client } from '../generated/client';
 import * as sdk from '../generated/sdk.gen';
-import type {
-	CreateWorkspaceRequest,
-	UpdateWorkspaceRequest,
-} from '../generated/types.gen';
-import type { PaginationParams } from '../types';
+import type { CreateWorkspaceRequest, UpdateWorkspaceRequest } from '../generated/types.gen';
 import { normalizeError } from '../helpers/errors';
+import type { PaginationParams } from '../types';
 
 /** Manage workspaces. */
 export class WorkspacesResource {
