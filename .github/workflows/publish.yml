@@ -1,0 +1,95 @@
+name: Publish
+
+# Deliberate, human-triggered publish of @tracore/sdk to npm with provenance.
+#
+# INERT until publishing is wired: this runs ONLY on manual workflow_dispatch, and
+# even then it needs the @tracore npm org plus EITHER an npm Trusted Publisher config
+# for this repo+workflow (OIDC, recommended) OR an NPM_TOKEN secret. Until that exists,
+# a dispatch will fail at the publish step. Committing this file changes nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type "publish" to confirm a real npm publish
+        required: true
+        default: ''
+
+# id-token: write is required for npm provenance / OIDC Trusted Publishing.
+# contents: read is all the publish needs from the repo.
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.4
+
+      # Node 24 ships npm >= 11.5.1, which Trusted Publishing (OIDC) requires.
+      # registry-url writes an .npmrc so npm publish targets the public registry.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: 'pnpm'
+
+      - name: Guardrails
+        env:
+          CONFIRM: ${{ github.event.inputs.confirm }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          # Deliberate confirm.
+          if [ "$CONFIRM" != "publish" ]; then
+            echo "::error::Refusing to publish: type 'publish' in the confirm input to proceed."
+            exit 1
+          fi
+
+          # Publish only from main or a release tag (vX.Y.Z).
+          case "$REF" in
+            refs/heads/main) ;;
+            refs/tags/v*) ;;
+            *)
+              echo "::error::Refusing to publish from '$REF'. Publish only from main or a vX.Y.Z release tag."
+              exit 1
+              ;;
+          esac
+
+          # Never publish a dirty tree.
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Working tree is dirty; refusing to publish."
+            git status --short
+            exit 1
+          fi
+
+          # Confirm npm is recent enough for Trusted Publishing / provenance.
+          NPM_VERSION="$(npm --version)"
+          echo "npm version: $NPM_VERSION"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to npm
+        env:
+          # Fallback only: when an NPM_TOKEN secret is present it is used; otherwise
+          # npm falls back to OIDC Trusted Publishing (the recommended path, no
+          # long-lived token). The Trusted Publisher must map this repo + workflow.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
