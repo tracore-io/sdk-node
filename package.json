@@ -1,7 +1,8 @@
 {
   "name": "@tracore/sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
+  "sideEffects": false,
   "description": "Official TypeScript SDK for the Tracore API",
   "license": "MIT",
   "author": "Tracore",
@@ -23,13 +24,18 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
@@ -45,6 +51,7 @@
   "scripts": {
     "generate": "openapi-ts",
     "build": "tsup",
+    "verify:package": "bash scripts/verify-package.sh",
     "clean": "git clean -xdf .cache dist .turbo node_modules",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
