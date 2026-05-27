@@ -122,6 +122,13 @@ jobs:
         if: steps.enable.outputs.enabled == 'true' && steps.idem.outputs.should_publish == 'true'
         run: pnpm build
 
+      # Last line of defence before an immutable publish: publint + a real
+      # pack-and-install ESM/CJS import smoke. A broken package fails here
+      # instead of shipping (this is the gap that let 0.1.1 publish broken).
+      - name: Verify package
+        if: steps.enable.outputs.enabled == 'true' && steps.idem.outputs.should_publish == 'true'
+        run: pnpm verify:package
+
       - name: Publish to npm
         if: steps.enable.outputs.enabled == 'true' && steps.idem.outputs.should_publish == 'true'
         env:

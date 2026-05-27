@@ -5,3 +5,5 @@ node_modules/
 .turbo/
 .cache/
 .idea
+# npm pack tarballs (produced by `pnpm verify:package` / npm pack)
+*.tgz
