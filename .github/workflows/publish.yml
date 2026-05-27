@@ -13,9 +13,9 @@ on:
         default: ''
 
 # id-token: write is required for npm provenance / OIDC Trusted Publishing.
-# contents: read is all the publish needs from the repo.
+# contents: write is needed to create the git tag + GitHub Release per publish.
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -137,3 +137,19 @@ jobs:
           # long-lived token). The Trusted Publisher must map this repo + workflow.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance
+
+      # After a successful publish, tag the repo (vX.Y.Z) and cut a GitHub Release
+      # so the published version is visible in git and the Releases tab. Idempotent.
+      - name: Tag and GitHub Release
+        if: steps.enable.outputs.enabled == 'true' && steps.idem.outputs.should_publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; skipping."
+          else
+            gh release create "$TAG" --title "$TAG" --generate-notes
+          fi
