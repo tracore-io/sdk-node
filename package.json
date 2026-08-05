@@ -1,6 +1,6 @@
 {
   "name": "@tracore/sdk",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
   "sideEffects": false,
   "description": "Official TypeScript SDK for the Tracore API",
@@ -47,7 +47,7 @@
     "access": "public",
     "provenance": true
   },
-  "tracoreApiVersion": "0.5.0",
+  "tracoreApiVersion": "0.6.0",
   "scripts": {
     "generate": "openapi-ts",
     "build": "tsup",
@@ -56,13 +56,15 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
     "@hey-api/openapi-ts": "0.94.0",
     "@types/node": "25.4.0",
     "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   }
 }

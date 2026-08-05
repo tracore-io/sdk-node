@@ -1,6 +1,7 @@
 export { TracoreClient } from './client';
 // Re-export all generated API types for consumers
 export type {
+	ApiErrorCode,
 	CreateDocumentRequest,
 	CreateSchemaFamilyRequest,
 	CreateWebhookRequest,
@@ -37,9 +38,11 @@ export type {
 	UserPlanResponse,
 	WebhookDelivery,
 	WebhookEndpoint,
+	WebhookEventType,
+	WebhookPayload,
 	Workspace,
 } from './generated/types.gen';
-export { TracoreError } from './helpers/errors';
+export { ERROR_CODES, type ErrorCode, TracoreError } from './helpers/errors';
 export type { PollOptions } from './helpers/polling';
 export { DocumentsResource } from './resources/documents';
 export { EnvironmentsResource } from './resources/environments';

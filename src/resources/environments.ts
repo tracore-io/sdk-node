@@ -14,12 +14,12 @@ export class EnvironmentsResource {
 	 * @param workspace - Workspace slug
 	 */
 	async list(workspace: string, params?: PaginationParams) {
-		const { data, error } = await sdk.getEnvironments({
+		const { data, error, response } = await sdk.getEnvironments({
 			client: this.client,
 			path: { slug: workspace },
 			query: params,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -30,11 +30,11 @@ export class EnvironmentsResource {
 	 * @param envSlug - Environment slug (production, staging, or development)
 	 */
 	async get(workspace: string, envSlug: 'production' | 'staging' | 'development') {
-		const { data, error } = await sdk.getEnvironmentBySlug({
+		const { data, error, response } = await sdk.getEnvironmentBySlug({
 			client: this.client,
 			path: { slug: workspace, envSlug },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -83,12 +83,12 @@ export class EnvironmentsResource {
 		envSlug: 'production' | 'staging' | 'development',
 		body: UpdateEnvironmentRequest,
 	) {
-		const { data, error } = await sdk.updateEnvironment({
+		const { data, error, response } = await sdk.updateEnvironment({
 			client: this.client,
 			path: { slug: workspace, envSlug },
 			body,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 }

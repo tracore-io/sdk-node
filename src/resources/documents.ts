@@ -28,7 +28,7 @@ export class DocumentsResource {
 	 * ```
 	 */
 	async list(workspace: string, schemaKey: string, params?: PaginationParams & EnvironmentParams) {
-		const { data, error } = await sdk.getDocuments({
+		const { data, error, response } = await sdk.getDocuments({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
 			query: {
@@ -37,7 +37,7 @@ export class DocumentsResource {
 				pageSize: params?.pageSize,
 			},
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -47,11 +47,11 @@ export class DocumentsResource {
 	 * @param id - Document ID
 	 */
 	async get(id: string) {
-		const { data, error } = await sdk.getDocumentById({
+		const { data, error, response } = await sdk.getDocumentById({
 			client: this.client,
 			path: { id },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -68,13 +68,13 @@ export class DocumentsResource {
 		body: CreateDocumentRequest,
 		params?: EnvironmentParams,
 	) {
-		const { data, error } = await sdk.createDocument({
+		const { data, error, response } = await sdk.createDocument({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
 			body,
 			query: { env: this.env(params) },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -110,7 +110,7 @@ export class DocumentsResource {
 		formData.append('name', name);
 		formData.append('file', file, name);
 
-		const { data, error } = await sdk.createDocument({
+		const { data, error, response } = await sdk.createDocument({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
 			body: formData as unknown as CreateDocumentRequest,
@@ -119,7 +119,7 @@ export class DocumentsResource {
 				'Content-Type': 'multipart/form-data',
 			},
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -130,11 +130,11 @@ export class DocumentsResource {
 	 * @returns The document file as a Blob
 	 */
 	async download(id: string) {
-		const { data, error } = await sdk.downloadDocument({
+		const { data, error, response } = await sdk.downloadDocument({
 			client: this.client,
 			path: { id },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -144,10 +144,10 @@ export class DocumentsResource {
 	 * @param id - Document ID
 	 */
 	async delete(id: string) {
-		const { error } = await sdk.deleteDocument({
+		const { error, response } = await sdk.deleteDocument({
 			client: this.client,
 			path: { id },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 	}
 }

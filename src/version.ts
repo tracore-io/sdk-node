@@ -2,4 +2,4 @@
 // release / .api-version), NOT this package's own npm version. Reported via the
 // `Tracore-Version` request header and `TracoreClient#apiVersion`.
 // Kept in sync with .api-version and package.json#tracoreApiVersion by sync.yml.
-export const API_VERSION = '0.5.0';
+export const API_VERSION = '0.6.0';

@@ -15,12 +15,12 @@ export class SchemasResource {
 	 * @param workspace - Workspace slug
 	 */
 	async list(workspace: string, params?: PaginationParams) {
-		const { data, error } = await sdk.getSchemaFamilies({
+		const { data, error, response } = await sdk.getSchemaFamilies({
 			client: this.client,
 			path: { slug: workspace },
 			query: params,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -31,11 +31,11 @@ export class SchemasResource {
 	 * @param schemaKey - Schema key identifier
 	 */
 	async get(workspace: string, schemaKey: string) {
-		const { data, error } = await sdk.getSchemaFamilyByKey({
+		const { data, error, response } = await sdk.getSchemaFamilyByKey({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -64,12 +64,12 @@ export class SchemasResource {
 	 * ```
 	 */
 	async create(workspace: string, body: CreateSchemaFamilyRequest) {
-		const { data, error } = await sdk.createSchemaFamily({
+		const { data, error, response } = await sdk.createSchemaFamily({
 			client: this.client,
 			path: { slug: workspace },
 			body,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -80,12 +80,12 @@ export class SchemasResource {
 	 * @param schemaKey - Schema key identifier
 	 */
 	async listVersions(workspace: string, schemaKey: string, params?: PaginationParams) {
-		const { data, error } = await sdk.getSchemaVersions({
+		const { data, error, response } = await sdk.getSchemaVersions({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
 			query: params,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -97,11 +97,11 @@ export class SchemasResource {
 	 * @param versionNumber - Version number
 	 */
 	async getVersion(workspace: string, schemaKey: string, versionNumber: number) {
-		const { data, error } = await sdk.getSchemaVersion({
+		const { data, error, response } = await sdk.getSchemaVersion({
 			client: this.client,
 			path: { slug: workspace, schemaKey, versionNumber },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 }

@@ -220,9 +220,56 @@ export type WebhookEndpoint = {
     url: string;
     events: Array<'document.received' | 'run.processing' | 'run.completed' | 'run.failed'>;
     isActive: boolean;
+    /**
+     * HMAC-SHA256 signing secret for this endpoint. Returned on create AND on every subsequent read of the endpoint (it is retrievable, not shown-once), so it can be re-fetched after rotation of your own storage.
+     */
     secret: string;
     createdAt: string;
     updatedAt: string;
+};
+
+/**
+ * Event types a webhook endpoint can subscribe to.
+ */
+export type WebhookEventType = 'document.received' | 'run.processing' | 'run.completed' | 'run.failed';
+
+/**
+ * Wire body of every webhook delivery (outbound POST from Tracore to a subscribed endpoint; not a REST response). Flat camelCase object — there is no nested `data` envelope beyond the `data` field below. Deliveries carry the headers `X-Webhook-Event` (the event type) and `X-Webhook-Signature` (`sha256=<hex HMAC-SHA256(secret, raw body)>`). Consumers should route by `event`; note `run.failed` deliveries always carry `status: "failed"` even when the run's terminal status in the API is `validation_failed`.
+ */
+export type WebhookPayload = {
+    event: WebhookEventType;
+    /**
+     * Run id. Empty string for `document.received` (no run exists yet).
+     */
+    runId: string;
+    documentId: string;
+    /**
+     * Environment id (not slug).
+     */
+    environmentId: string;
+    /**
+     * Delivery-time status literal — `received` (document.received), `processing` (run.processing), `completed` (run.completed) or `failed` (run.failed, uninformative; route by `event`).
+     */
+    status: string;
+    timestamp: string;
+    /**
+     * Extracted data. Present on `run.completed` only.
+     */
+    data?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Extraction confidence. Present on `run.completed` only.
+     */
+    confidence?: number;
+    /**
+     * Failure description. Present on `run.failed` only.
+     */
+    errorMessage?: string;
+    /**
+     * Document display name. Present on `document.received` only.
+     */
+    documentName?: string;
 };
 
 export type WebhookDelivery = {
@@ -288,7 +335,7 @@ export type UserPlanResponse = {
          */
         maxSchemas: number | null;
         /**
-         * Page quota per anniversary window. Numeric on both plans today (free=50, pro=2000); `null` is reserved for a future unlimited tier.
+         * Page quota per anniversary window. Numeric on both plans today (free=100, pro=2000); `null` is reserved for a future unlimited tier.
          */
         maxPagesPerMonth: number | null;
         /**
@@ -385,7 +432,7 @@ export type ErrorResponse = {
     error: {
         message: string;
         /**
-         * Application error code. Known values include: `invalid_key`, `invalid_provider`, `invalid_model`, `forbidden_key`, `no_key`, `rate_limited`, `plan_limit_exceeded` (see `PlanLimitExceededResponse` for the discriminated wire body), `NOT_FOUND`, `VALIDATION_ERROR`, `UNAUTHORIZED`, `INTERNAL_ERROR`. Kept as a free-form string for forward compatibility.
+         * Application error code. The known vocabulary is enumerated in the standalone `ApiErrorCode` schema (exported into generated SDK types); this field stays a free-form string so new codes are not a breaking change. `plan_limit_exceeded` uses the discriminated wire body in `PlanLimitExceededResponse`.
          */
         code?: string;
         details?: {
@@ -393,6 +440,11 @@ export type ErrorResponse = {
         };
     };
 };
+
+/**
+ * Known top-level `error.code` vocabulary emitted by the API. Deliberately NOT wired into `ErrorResponse.error.code` (which stays free-form for forward compatibility) — this standalone enum exists so generated SDKs carry the constants and consumers never restate them by hand. SDKs additionally synthesize client-side codes for failures that never reached the API: `transport_error` (network/decoding failure) and `config_error` (invalid client-side input). Notes: `stripe_not_configured`, `no_stripe_customer`, `email_not_verified`, and `checkout_missing_user` surface only on internal billing endpoints; `invalid_signature` only on the Stripe-facing `/billing/webhook`. `invalid_key` is NOT a top-level code — key-validation failures arrive as `VALIDATION_ERROR` with `details.code = "invalid_key"`.
+ */
+export type ApiErrorCode = 'NOT_FOUND' | 'VALIDATION_ERROR' | 'UNAUTHORIZED' | 'INTERNAL_ERROR' | 'not_implemented' | 'plan_limit_exceeded' | 'rate_limited' | 'email_not_verified' | 'forbidden_key' | 'invalid_provider' | 'invalid_model' | 'no_key' | 'stripe_not_configured' | 'no_stripe_customer' | 'checkout_missing_user' | 'invalid_signature';
 
 /**
  * BYOK provider enum.
