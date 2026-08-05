@@ -1,7 +1,7 @@
 import type { Client } from '../generated/client';
 import { getRunById } from '../generated/sdk.gen';
 import type { Run } from '../generated/types.gen';
-import { normalizeError, TracoreError } from './errors';
+import { ERROR_CODES, normalizeError, TracoreError } from './errors';
 
 /** Options for polling a run until completion. */
 export interface PollOptions {
@@ -27,13 +27,13 @@ export async function pollRun(
 	const { intervalMs = 1000, maxAttempts = 60, onProgress } = options;
 
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
-		const { data, error } = await getRunById({
+		const { data, error, response } = await getRunById({
 			client,
 			path: { id: runId },
 		});
 
 		if (error) {
-			throw normalizeError(error);
+			throw normalizeError(error, response);
 		}
 
 		const run = data as Run;
@@ -46,5 +46,11 @@ export async function pollRun(
 		await new Promise((resolve) => setTimeout(resolve, intervalMs));
 	}
 
-	throw new TracoreError(408, `Polling timed out after ${maxAttempts} attempts for run ${runId}`);
+	// Status 0 + a synthetic code: this is a client-side give-up, not an HTTP
+	// response the server sent. The run itself is still live.
+	throw new TracoreError(
+		0,
+		`Polling timed out after ${maxAttempts} attempts for run ${runId}`,
+		ERROR_CODES.POLLING_TIMEOUT,
+	);
 }

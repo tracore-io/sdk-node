@@ -1,7 +1,7 @@
 import type { Client } from './generated/client';
 import { createClient, createConfig } from './generated/client';
 import * as sdk from './generated/sdk.gen';
-import type { Run } from './generated/types.gen';
+import type { ExtractAcceptedResponse, Run } from './generated/types.gen';
 import { normalizeError } from './helpers/errors';
 import { pollRun } from './helpers/polling';
 import { DocumentsResource } from './resources/documents';
@@ -96,6 +96,11 @@ export class TracoreClient {
 	 * This is a convenience method that triggers extraction and optionally
 	 * polls until the run completes.
 	 *
+	 * Note that `extract` is NOT idempotent across retries: it issues a billed
+	 * POST and then at least one follow-up GET, so retrying the whole call after
+	 * a failure can start a second billed run. Webhook-driven consumers that only
+	 * need the run id should use {@link extractAsync}.
+	 *
 	 * @param workspace - Workspace slug
 	 * @param schemaKey - Schema key for the extraction schema
 	 * @param input - Either `{ documentId }` for an existing document, or `{ file, name }` for inline upload
@@ -117,7 +122,7 @@ export class TracoreClient {
 	 * @example
 	 * ```ts
 	 * // Extract from file with manual polling
-	 * const { runId } = await client.extract('my-workspace', 'invoice', {
+	 * const { runId } = await client.extractAsync('my-workspace', 'invoice', {
 	 *   file: new Blob([pdfBuffer], { type: 'application/pdf' }),
 	 *   name: 'invoice.pdf',
 	 * });
@@ -132,12 +137,67 @@ export class TracoreClient {
 		input: { documentId: string } | { file: Blob; name: string },
 		options?: ExtractOptions,
 	): Promise<Run> {
+		const { runId } = await this.startExtract(workspace, schemaKey, input, options);
+
+		if (options?.poll) {
+			const pollOpts = typeof options.poll === 'object' ? options.poll : undefined;
+			return pollRun(this.httpClient, runId, pollOpts);
+		}
+
+		// Return the initial run state
+		const { data, error, response } = await sdk.getRunById({
+			client: this.httpClient,
+			path: { id: runId },
+		});
+		if (error) throw normalizeError(error, response);
+		return data as Run;
+	}
+
+	/**
+	 * Trigger an extraction run and return the API's 202 accepted envelope
+	 * (`runId` + `pending` status) without any follow-up request.
+	 *
+	 * This is the fire-and-forget variant for webhook-driven consumers: the run
+	 * id is never lost to a failed follow-up GET. Error semantics: a
+	 * `TracoreError` with `status !== 0` means the API rejected the request and
+	 * no run exists; a transport error (`status === 0`) is ambiguous — the
+	 * connection may have dropped after the server accepted, so a billed run may
+	 * already be live. Treat transport errors as "unknown outcome" and retry
+	 * only if a duplicate run is acceptable.
+	 *
+	 * @param workspace - Workspace slug
+	 * @param schemaKey - Schema key for the extraction schema
+	 * @param input - Either `{ documentId }` for an existing document, or `{ file, name }` for inline upload
+	 * @param options - Extraction options (`poll` does not apply here)
+	 *
+	 * @example
+	 * ```ts
+	 * const { runId } = await client.extractAsync('my-workspace', 'invoice', {
+	 *   documentId: 'doc-123',
+	 * });
+	 * await store(runId); // the run.completed webhook will quote this id
+	 * ```
+	 */
+	async extractAsync(
+		workspace: string,
+		schemaKey: string,
+		input: { documentId: string } | { file: Blob; name: string },
+		options?: Omit<ExtractOptions, 'poll'>,
+	): Promise<ExtractAcceptedResponse> {
+		return this.startExtract(workspace, schemaKey, input, options);
+	}
+
+	/** Perform the single extract POST and return the 202 accepted envelope. */
+	private async startExtract(
+		workspace: string,
+		schemaKey: string,
+		input: { documentId: string } | { file: Blob; name: string },
+		options?: Omit<ExtractOptions, 'poll'>,
+	): Promise<ExtractAcceptedResponse> {
 		const env = options?.env ?? this.defaultEnv;
 
-		let runId: string;
-
 		if ('documentId' in input) {
-			const { data, error } = await sdk.extractDocumentById({
+			const { data, error, response } = await sdk.extractDocumentById({
 				client: this.httpClient,
 				path: { slug: workspace, schemaKey, id: input.documentId },
 				body: {
@@ -146,43 +206,30 @@ export class TracoreClient {
 				},
 				query: { env },
 			});
-			if (error) throw normalizeError(error);
-			runId = (data as { runId: string }).runId;
-		} else {
-			const formData = new FormData();
-			formData.append('file', input.file, input.name);
-			formData.append('name', input.name);
-			if (options?.versionNumber) {
-				formData.append('versionNumber', String(options.versionNumber));
-			}
-			if (options?.model) {
-				formData.append('model', options.model);
-			}
-
-			const { data, error } = await sdk.extractDocument({
-				client: this.httpClient,
-				path: { slug: workspace, schemaKey },
-				body: formData as unknown as import('./generated/types.gen').ExtractRequest,
-				query: { env },
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
-			});
-			if (error) throw normalizeError(error);
-			runId = (data as { runId: string }).runId;
+			if (error) throw normalizeError(error, response);
+			return data as ExtractAcceptedResponse;
 		}
 
-		if (options?.poll) {
-			const pollOpts = typeof options.poll === 'object' ? options.poll : undefined;
-			return pollRun(this.httpClient, runId, pollOpts);
+		const formData = new FormData();
+		formData.append('file', input.file, input.name);
+		formData.append('name', input.name);
+		if (options?.versionNumber) {
+			formData.append('versionNumber', String(options.versionNumber));
+		}
+		if (options?.model) {
+			formData.append('model', options.model);
 		}
 
-		// Return the initial run state
-		const { data, error } = await sdk.getRunById({
+		const { data, error, response } = await sdk.extractDocument({
 			client: this.httpClient,
-			path: { id: runId },
+			path: { slug: workspace, schemaKey },
+			body: formData as unknown as import('./generated/types.gen').ExtractRequest,
+			query: { env },
+			headers: {
+				'Content-Type': 'multipart/form-data',
+			},
 		});
-		if (error) throw normalizeError(error);
-		return data as Run;
+		if (error) throw normalizeError(error, response);
+		return data as ExtractAcceptedResponse;
 	}
 }

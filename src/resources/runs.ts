@@ -23,7 +23,7 @@ export class RunsResource {
 	 * @param schemaKey - Schema key identifier
 	 */
 	async list(workspace: string, schemaKey: string, params?: PaginationParams & EnvironmentParams) {
-		const { data, error } = await sdk.getRuns({
+		const { data, error, response } = await sdk.getRuns({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
 			query: {
@@ -32,7 +32,7 @@ export class RunsResource {
 				pageSize: params?.pageSize,
 			},
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -42,11 +42,11 @@ export class RunsResource {
 	 * @param id - Run ID
 	 */
 	async get(id: string) {
-		const { data, error } = await sdk.getRunById({
+		const { data, error, response } = await sdk.getRunById({
 			client: this.client,
 			path: { id },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 

@@ -60,10 +60,10 @@ export class UserProviderKeysResource {
 	 * ```
 	 */
 	async list() {
-		const { data, error } = await sdk.getUserProviderKeys({
+		const { data, error, response } = await sdk.getUserProviderKeys({
 			client: this.client,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -73,11 +73,11 @@ export class UserProviderKeysResource {
 	 * @param params - The provider whose key metadata to fetch.
 	 */
 	async get(params: { provider: ProviderType }) {
-		const { data, error } = await sdk.getUserProviderKey({
+		const { data, error, response } = await sdk.getUserProviderKey({
 			client: this.client,
 			path: { provider: params.provider },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -113,12 +113,12 @@ export class UserProviderKeysResource {
 	 */
 	async set(params: { provider: ProviderType } & SetProviderKeyRequest) {
 		const { provider, ...body } = params;
-		const { data, error } = await sdk.setUserProviderKey({
+		const { data, error, response } = await sdk.setUserProviderKey({
 			client: this.client,
 			path: { provider },
 			body,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -132,11 +132,11 @@ export class UserProviderKeysResource {
 	 * @param params - The provider whose key to re-test.
 	 */
 	async test(params: { provider: ProviderType }) {
-		const { data, error } = await sdk.testUserProviderKey({
+		const { data, error, response } = await sdk.testUserProviderKey({
 			client: this.client,
 			path: { provider: params.provider },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -150,11 +150,11 @@ export class UserProviderKeysResource {
 	 * @param params - The provider whose key to remove.
 	 */
 	async remove(params: { provider: ProviderType }) {
-		const { data, error } = await sdk.deleteUserProviderKey({
+		const { data, error, response } = await sdk.deleteUserProviderKey({
 			client: this.client,
 			path: { provider: params.provider },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 }

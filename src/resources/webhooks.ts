@@ -27,7 +27,7 @@ export class WebhooksResource {
 	 * @param schemaKey - Schema key identifier
 	 */
 	async list(workspace: string, schemaKey: string, params?: PaginationParams & EnvironmentParams) {
-		const { data, error } = await sdk.getWebhooks({
+		const { data, error, response } = await sdk.getWebhooks({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
 			query: {
@@ -36,7 +36,7 @@ export class WebhooksResource {
 				pageSize: params?.pageSize,
 			},
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -46,11 +46,11 @@ export class WebhooksResource {
 	 * @param id - Webhook endpoint ID
 	 */
 	async get(id: string) {
-		const { data, error } = await sdk.getWebhookById({
+		const { data, error, response } = await sdk.getWebhookById({
 			client: this.client,
 			path: { id },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -76,13 +76,13 @@ export class WebhooksResource {
 		body: CreateWebhookRequest,
 		params?: EnvironmentParams,
 	) {
-		const { data, error } = await sdk.createWebhook({
+		const { data, error, response } = await sdk.createWebhook({
 			client: this.client,
 			path: { slug: workspace, schemaKey },
 			body,
 			query: { env: this.env(params) },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -93,12 +93,12 @@ export class WebhooksResource {
 	 * @param body - Fields to update
 	 */
 	async update(id: string, body: UpdateWebhookRequest) {
-		const { data, error } = await sdk.updateWebhook({
+		const { data, error, response } = await sdk.updateWebhook({
 			client: this.client,
 			path: { id },
 			body,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -108,11 +108,11 @@ export class WebhooksResource {
 	 * @param id - Webhook endpoint ID
 	 */
 	async delete(id: string) {
-		const { error } = await sdk.deleteWebhook({
+		const { error, response } = await sdk.deleteWebhook({
 			client: this.client,
 			path: { id },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 	}
 
 	/**
@@ -121,12 +121,12 @@ export class WebhooksResource {
 	 * @param id - Webhook endpoint ID
 	 */
 	async listDeliveries(id: string, params?: PaginationParams) {
-		const { data, error } = await sdk.getWebhookDeliveries({
+		const { data, error, response } = await sdk.getWebhookDeliveries({
 			client: this.client,
 			path: { id },
 			query: params,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -137,12 +137,12 @@ export class WebhooksResource {
 	 * @param body - Test event configuration
 	 */
 	async sendTest(id: string, body: SendTestWebhookRequest) {
-		const { data, error } = await sdk.sendTestWebhook({
+		const { data, error, response } = await sdk.sendTestWebhook({
 			client: this.client,
 			path: { id },
 			body,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 }

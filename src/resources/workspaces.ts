@@ -18,11 +18,11 @@ export class WorkspacesResource {
 	 * ```
 	 */
 	async list(params?: PaginationParams) {
-		const { data, error } = await sdk.getWorkspaces({
+		const { data, error, response } = await sdk.getWorkspaces({
 			client: this.client,
 			query: params,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -32,11 +32,11 @@ export class WorkspacesResource {
 	 * @param slug - Workspace slug identifier
 	 */
 	async get(slug: string) {
-		const { data, error } = await sdk.getWorkspaceBySlug({
+		const { data, error, response } = await sdk.getWorkspaceBySlug({
 			client: this.client,
 			path: { slug },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -54,11 +54,11 @@ export class WorkspacesResource {
 	 * ```
 	 */
 	async create(body: CreateWorkspaceRequest) {
-		const { data, error } = await sdk.createWorkspace({
+		const { data, error, response } = await sdk.createWorkspace({
 			client: this.client,
 			body,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -69,12 +69,12 @@ export class WorkspacesResource {
 	 * @param body - Fields to update
 	 */
 	async update(slug: string, body: UpdateWorkspaceRequest) {
-		const { data, error } = await sdk.updateWorkspace({
+		const { data, error, response } = await sdk.updateWorkspace({
 			client: this.client,
 			path: { slug },
 			body,
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 		return data;
 	}
 
@@ -84,10 +84,10 @@ export class WorkspacesResource {
 	 * @param slug - Workspace slug identifier
 	 */
 	async delete(slug: string) {
-		const { error } = await sdk.deleteWorkspace({
+		const { error, response } = await sdk.deleteWorkspace({
 			client: this.client,
 			path: { slug },
 		});
-		if (error) throw normalizeError(error);
+		if (error) throw normalizeError(error, response);
 	}
 }
