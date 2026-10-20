@@ -5,6 +5,26 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this SDK follo
 SemVer. Each entry notes the Tracore API contract version (`api-vX.Y.Z`) it was
 built from.
 
+## 0.3.0 — api-v0.6.0
+
+### Added
+
+- `ExtractOptions.schema`, `schemaName`, `description`: pass a JSON Schema inline to
+  `client.extract` / `client.extractAsync`. The API creates the schema family on
+  first use and versions it by hash afterwards. Works for both `{ file, name }` and
+  `{ documentId }` inputs. The API always accepted these fields; the SDK never sent
+  them, although the docs quickstart used them.
+
+### Fixed
+
+- File uploads through `client.extract` / `client.extractAsync` (`{ file, name }`)
+  and `client.documents.upload` sent the body `"{}"` instead of multipart data: the
+  generated client JSON-serialized the `FormData` and the hard-coded
+  `Content-Type: multipart/form-data` had no boundary. The `FormData` is now sent
+  as-is and `fetch` sets the content type with its boundary.
+- Multipart fields are written before the file part. The API reads fields only up
+  to the file, so `name` (previously appended after `file`) was dropped.
+
 ## 0.2.0 — api-v0.6.0
 
 ### Added

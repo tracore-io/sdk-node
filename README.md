@@ -58,6 +58,26 @@ const run = await client.extract(workspace.slug, 'invoice', {
 console.log(run.extractedData);
 ```
 
+### Inline schema
+
+Skip the separate `schemas.create` call by passing the schema to `extract`. The
+schema family is created on first use; later calls create a new version only when
+the schema changes.
+
+```typescript
+const run = await client.extract('my-workspace', 'invoice', {
+  file: new Blob([pdfBuffer], { type: 'application/pdf' }),
+  name: 'invoice.pdf',
+}, {
+  schemaName: 'Invoice',
+  schema: {
+    type: 'object',
+    properties: { invoiceNumber: { type: 'string' }, total: { type: 'number' } },
+  },
+  poll: true,
+});
+```
+
 ## Resources
 
 - `client.workspaces` - Manage workspaces

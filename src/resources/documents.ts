@@ -2,6 +2,7 @@ import type { Client } from '../generated/client';
 import * as sdk from '../generated/sdk.gen';
 import type { CreateDocumentRequest } from '../generated/types.gen';
 import { normalizeError } from '../helpers/errors';
+import { multipartBody } from '../helpers/multipart';
 import type { EnvironmentParams, PaginationParams } from '../types';
 
 /** Manage documents. */
@@ -115,9 +116,7 @@ export class DocumentsResource {
 			path: { slug: workspace, schemaKey },
 			body: formData as unknown as CreateDocumentRequest,
 			query: { env: this.env(params) },
-			headers: {
-				'Content-Type': 'multipart/form-data',
-			},
+			...multipartBody,
 		});
 		if (error) throw normalizeError(error, response);
 		return data;
