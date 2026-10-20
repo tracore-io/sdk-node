@@ -3,6 +3,7 @@ import { createClient, createConfig } from './generated/client';
 import * as sdk from './generated/sdk.gen';
 import type { ExtractAcceptedResponse, Run } from './generated/types.gen';
 import { normalizeError } from './helpers/errors';
+import { multipartBody } from './helpers/multipart';
 import { pollRun } from './helpers/polling';
 import { DocumentsResource } from './resources/documents';
 import { EnvironmentsResource } from './resources/environments';
@@ -202,6 +203,9 @@ export class TracoreClient {
 				path: { slug: workspace, schemaKey, id: input.documentId },
 				body: {
 					versionNumber: options?.versionNumber,
+					schema: options?.schema,
+					schemaName: options?.schemaName,
+					description: options?.description,
 					model: options?.model,
 				},
 				query: { env },
@@ -210,24 +214,33 @@ export class TracoreClient {
 			return data as ExtractAcceptedResponse;
 		}
 
+		// The API reads multipart fields only up to the file part, so every field
+		// must be appended before `file` or it is silently dropped.
 		const formData = new FormData();
-		formData.append('file', input.file, input.name);
 		formData.append('name', input.name);
 		if (options?.versionNumber) {
 			formData.append('versionNumber', String(options.versionNumber));
 		}
+		if (options?.schema) {
+			formData.append('schema', JSON.stringify(options.schema));
+		}
+		if (options?.schemaName) {
+			formData.append('schemaName', options.schemaName);
+		}
+		if (options?.description) {
+			formData.append('description', options.description);
+		}
 		if (options?.model) {
 			formData.append('model', options.model);
 		}
+		formData.append('file', input.file, input.name);
 
 		const { data, error, response } = await sdk.extractDocument({
 			client: this.httpClient,
 			path: { slug: workspace, schemaKey },
 			body: formData as unknown as import('./generated/types.gen').ExtractRequest,
 			query: { env },
-			headers: {
-				'Content-Type': 'multipart/form-data',
-			},
+			...multipartBody,
 		});
 		if (error) throw normalizeError(error, response);
 		return data as ExtractAcceptedResponse;

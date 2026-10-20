@@ -10,6 +10,14 @@ function jsonResponse(status: number, body: unknown): Response {
 	});
 }
 
+function formKeys(form: FormData): string[] {
+	const keys: string[] = [];
+	form.forEach((_value, key) => {
+		keys.push(key);
+	});
+	return keys;
+}
+
 function makeClient() {
 	return new TracoreClient({ apiKey: 'test-key', baseUrl: 'https://api.test.local' });
 }
@@ -80,6 +88,106 @@ describe('extract', () => {
 		expect(calls).toHaveLength(2);
 		expect(calls[1]?.method).toBe('GET');
 		expect(calls[1]?.url).toContain('/runs/run_123');
+	});
+});
+
+describe('extract request body', () => {
+	const schema = {
+		type: 'object',
+		properties: { total: { type: 'number' } },
+	};
+
+	function captureRequest() {
+		const captured: { request?: Request } = {};
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (input: Request) => {
+				captured.request = input;
+				return jsonResponse(202, { runId: 'run_123', status: 'pending' });
+			}),
+		);
+		return captured;
+	}
+
+	it('sends a file upload as real multipart with every field before the file', async () => {
+		const captured = captureRequest();
+
+		await makeClient().extractAsync(
+			'ws',
+			'invoice',
+			{ file: new Blob(['%PDF-1.4'], { type: 'application/pdf' }), name: 'invoice.pdf' },
+			{
+				versionNumber: 2,
+				schema,
+				schemaName: 'Invoice',
+				description: 'Supplier invoices',
+				model: 'mistral/mistral-small-latest',
+			},
+		);
+
+		const request = captured.request as Request;
+		expect(request.headers.get('content-type')).toMatch(/^multipart\/form-data; boundary=/);
+
+		const form = await request.formData();
+		expect(formKeys(form)).toEqual([
+			'name',
+			'versionNumber',
+			'schema',
+			'schemaName',
+			'description',
+			'model',
+			'file',
+		]);
+		expect(form.get('name')).toBe('invoice.pdf');
+		expect(JSON.parse(form.get('schema') as string)).toEqual(schema);
+		expect(form.get('schemaName')).toBe('Invoice');
+		expect(form.get('description')).toBe('Supplier invoices');
+		expect(await (form.get('file') as File).text()).toBe('%PDF-1.4');
+	});
+
+	it('sends the inline schema in the JSON body for an existing document', async () => {
+		const captured = captureRequest();
+
+		await makeClient().extractAsync(
+			'ws',
+			'invoice',
+			{ documentId: 'doc_1' },
+			{ schema, schemaName: 'Invoice', description: 'Supplier invoices' },
+		);
+
+		const request = captured.request as Request;
+		expect(request.url).toContain('/documents/doc_1/extract');
+		expect(await request.json()).toEqual({
+			schema,
+			schemaName: 'Invoice',
+			description: 'Supplier invoices',
+		});
+	});
+});
+
+describe('documents.upload request body', () => {
+	it('sends real multipart with name before the file', async () => {
+		const captured: { request?: Request } = {};
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (input: Request) => {
+				captured.request = input;
+				return jsonResponse(201, { id: 'doc_1' });
+			}),
+		);
+
+		await makeClient().documents.upload(
+			'ws',
+			'invoice',
+			new Blob(['%PDF-1.4'], { type: 'application/pdf' }),
+			'invoice.pdf',
+		);
+
+		const request = captured.request as Request;
+		expect(request.headers.get('content-type')).toMatch(/^multipart\/form-data; boundary=/);
+		const form = await request.formData();
+		expect(formKeys(form)).toEqual(['name', 'file']);
+		expect(await (form.get('file') as File).text()).toBe('%PDF-1.4');
 	});
 });
 

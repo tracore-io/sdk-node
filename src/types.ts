@@ -66,8 +66,18 @@ export interface EnvironmentParams {
 
 /** Options for the extract convenience method. */
 export interface ExtractOptions extends EnvironmentParams {
-	/** Schema version number to use. Uses latest if omitted. */
+	/** Schema version number to use. Uses latest if omitted. Ignored when `schema` is set. */
 	versionNumber?: number;
+	/**
+	 * Inline JSON Schema to extract with. On first use the schema family is
+	 * created under `schemaKey`; afterwards a new version is created only if
+	 * the schema's hash differs from the latest one.
+	 */
+	schema?: Record<string, unknown>;
+	/** Display name for the schema family when `schema` creates it. Defaults to `schemaKey`. */
+	schemaName?: string;
+	/** Description for the schema family when `schema` creates it. */
+	description?: string;
 	/**
 	 * Optional provider/model override for this run. Format is
 	 * `<provider>/<model>` — for example `anthropic/claude-opus-4-7`.
