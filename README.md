@@ -61,8 +61,9 @@ console.log(run.extractedData);
 ### Inline schema
 
 Skip the separate `schemas.create` call by passing the schema to `extract`. The
-schema family is created on first use; later calls create a new version only when
-the schema changes.
+schema family is created on first use. Later calls reuse the version of any schema
+sent before and create a new version only for a schema not seen yet, so each
+environment can send its own schema under the same key.
 
 ```typescript
 const run = await client.extract('my-workspace', 'invoice', {
