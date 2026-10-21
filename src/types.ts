@@ -70,13 +70,18 @@ export interface ExtractOptions extends EnvironmentParams {
 	versionNumber?: number;
 	/**
 	 * Inline JSON Schema to extract with. On first use the schema family is
-	 * created under `schemaKey`; afterwards a new version is created only if
-	 * the schema's hash differs from the latest one.
+	 * created under `schemaKey`. Afterwards a schema matching any earlier version
+	 * (by canonical hash) reuses that version without changing the latest one;
+	 * only a schema not seen before creates a new latest version. Send it on
+	 * every call to run different schemas per environment under one key.
 	 */
 	schema?: Record<string, unknown>;
-	/** Display name for the schema family when `schema` creates it. Defaults to `schemaKey`. */
+	/**
+	 * Display name for the schema family. Updates the stored name when set and
+	 * keeps it when omitted; a family created without it is named after `schemaKey`.
+	 */
 	schemaName?: string;
-	/** Description for the schema family when `schema` creates it. */
+	/** Description for the schema family. Updates the stored one when set, keeps it when omitted. */
 	description?: string;
 	/**
 	 * Optional provider/model override for this run. Format is

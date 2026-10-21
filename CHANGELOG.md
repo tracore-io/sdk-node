@@ -5,6 +5,15 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this SDK follo
 SemVer. Each entry notes the Tracore API contract version (`api-vX.Y.Z`) it was
 built from.
 
+## 0.3.1 — api-v0.6.0
+
+### Changed
+
+- Docs for `ExtractOptions.schema`, `schemaName` and `description` describe the
+  API's current inline-schema behaviour: a schema matching any earlier version
+  reuses it without moving the latest version, and `schemaName` / `description`
+  update the family only when set. No code change.
+
 ## 0.3.0 — api-v0.6.0
 
 ### Added

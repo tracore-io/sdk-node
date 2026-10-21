@@ -1,6 +1,6 @@
 {
   "name": "@tracore/sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "sideEffects": false,
   "description": "Official TypeScript SDK for the Tracore API",
