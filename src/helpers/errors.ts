@@ -27,10 +27,18 @@ export const ERROR_CODES = {
 	POLLING_TIMEOUT: 'polling_timeout',
 	NOT_FOUND: 'NOT_FOUND',
 	VALIDATION_ERROR: 'VALIDATION_ERROR',
+	/** No credentials were sent. API-key failures use the `*_API_KEY` codes below. */
 	UNAUTHORIZED: 'UNAUTHORIZED',
+	/** 401: the API key does not exist or was revoked. */
+	INVALID_API_KEY: 'invalid_api_key',
+	/** 401: the API key exists but is disabled. */
+	API_KEY_DISABLED: 'api_key_disabled',
+	/** 401: the API key has passed its expiry date. */
+	API_KEY_EXPIRED: 'api_key_expired',
 	INTERNAL_ERROR: 'INTERNAL_ERROR',
 	NOT_IMPLEMENTED: 'not_implemented',
 	PLAN_LIMIT_EXCEEDED: 'plan_limit_exceeded',
+	/** 429: retry later; the response carries `Retry-After` (seconds) when the wait is known. */
 	RATE_LIMITED: 'rate_limited',
 	EMAIL_NOT_VERIFIED: 'email_not_verified',
 	FORBIDDEN_KEY: 'forbidden_key',
