@@ -442,9 +442,9 @@ export type ErrorResponse = {
 };
 
 /**
- * Known top-level `error.code` vocabulary emitted by the API. Deliberately NOT wired into `ErrorResponse.error.code` (which stays free-form for forward compatibility) — this standalone enum exists so generated SDKs carry the constants and consumers never restate them by hand. SDKs additionally synthesize client-side codes for failures that never reached the API: `transport_error` (network/decoding failure) and `config_error` (invalid client-side input). Notes: `stripe_not_configured`, `no_stripe_customer`, `email_not_verified`, and `checkout_missing_user` surface only on internal billing endpoints; `invalid_signature` only on the Stripe-facing `/billing/webhook`. `invalid_key` is NOT a top-level code — key-validation failures arrive as `VALIDATION_ERROR` with `details.code = "invalid_key"`.
+ * Known top-level `error.code` vocabulary emitted by the API. Deliberately NOT wired into `ErrorResponse.error.code` (which stays free-form for forward compatibility) — this standalone enum exists so generated SDKs carry the constants and consumers never restate them by hand. SDKs additionally synthesize client-side codes for failures that never reached the API: `transport_error` (network/decoding failure) and `config_error` (invalid client-side input). Notes: `stripe_not_configured`, `no_stripe_customer`, `email_not_verified`, and `checkout_missing_user` surface only on internal billing endpoints; `invalid_signature` only on the Stripe-facing `/billing/webhook`. `invalid_key` is NOT a top-level code — key-validation failures arrive as `VALIDATION_ERROR` with `details.code = "invalid_key"`. API-key authentication failures use `invalid_api_key` / `api_key_disabled` / `api_key_expired` (401); requests without any credentials stay `UNAUTHORIZED`.
  */
-export type ApiErrorCode = 'NOT_FOUND' | 'VALIDATION_ERROR' | 'UNAUTHORIZED' | 'INTERNAL_ERROR' | 'not_implemented' | 'plan_limit_exceeded' | 'rate_limited' | 'email_not_verified' | 'forbidden_key' | 'invalid_provider' | 'invalid_model' | 'no_key' | 'stripe_not_configured' | 'no_stripe_customer' | 'checkout_missing_user' | 'invalid_signature';
+export type ApiErrorCode = 'NOT_FOUND' | 'VALIDATION_ERROR' | 'UNAUTHORIZED' | 'invalid_api_key' | 'api_key_disabled' | 'api_key_expired' | 'INTERNAL_ERROR' | 'not_implemented' | 'plan_limit_exceeded' | 'rate_limited' | 'email_not_verified' | 'forbidden_key' | 'invalid_provider' | 'invalid_model' | 'no_key' | 'stripe_not_configured' | 'no_stripe_customer' | 'checkout_missing_user' | 'invalid_signature';
 
 /**
  * BYOK provider enum.
@@ -773,7 +773,7 @@ export type SetUserProviderKeyErrors = {
      */
     401: ErrorResponse;
     /**
-     * Rate-limited. Rolling-window limits enforced per user.
+     * Rate-limited (`rate_limited`). Rolling-window limits enforced per user. A `Retry-After` header (seconds) is sent when the wait is known.
      */
     429: ErrorResponse;
 };
@@ -808,7 +808,7 @@ export type TestUserProviderKeyErrors = {
      */
     404: ErrorResponse;
     /**
-     * Rate-limited. Rolling-window limits enforced per user.
+     * Rate-limited (`rate_limited`). Rolling-window limits enforced per user. A `Retry-After` header (seconds) is sent when the wait is known.
      */
     429: ErrorResponse;
 };

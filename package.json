@@ -1,6 +1,6 @@
 {
   "name": "@tracore/sdk",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "type": "module",
   "sideEffects": false,
   "description": "Official TypeScript SDK for the Tracore API",
@@ -47,7 +47,7 @@
     "access": "public",
     "provenance": true
   },
-  "tracoreApiVersion": "0.6.0",
+  "tracoreApiVersion": "0.7.0",
   "scripts": {
     "generate": "openapi-ts",
     "build": "tsup",

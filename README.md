@@ -1,7 +1,7 @@
 # @tracore/sdk
 
 <!-- tracore-api-version:start -->
-> Built against Tracore API v0.6.0.
+> Built against Tracore API v0.7.0.
 <!-- tracore-api-version:end -->
 
 Official TypeScript SDK for the Tracore API.
