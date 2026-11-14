@@ -1,0 +1,40 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "minimumReleaseAge": "7 days",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 5am on tuesday"]
+  },
+  "ignorePaths": ["**/node_modules/**", "**/dist/**"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "all non-major updates",
+      "labels": ["non-major"]
+    },
+    {
+      "description": "Majors are not grouped: each gets its own PR",
+      "matchUpdateTypes": ["major"],
+      "labels": ["major", "needs-manual-review"]
+    },
+    {
+      "description": "A generator bump changes src/generated/, so the PR must also carry pnpm generate output; it never rides in the shared group",
+      "matchPackageNames": ["@hey-api/openapi-ts"],
+      "groupName": "codegen",
+      "labels": ["codegen", "needs-manual-review"]
+    },
+    {
+      "description": "engines.node and the Node 20 job in validate.yml are the oldest Node the SDK supports; raising them is a breaking change for consumers, made by hand",
+      "matchDepNames": ["node"],
+      "matchDepTypes": ["engines"],
+      "enabled": false
+    },
+    {
+      "matchDepNames": ["node"],
+      "matchFileNames": [".github/workflows/validate.yml"],
+      "enabled": false
+    }
+  ]
+}
