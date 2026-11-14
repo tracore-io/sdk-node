@@ -128,7 +128,9 @@ try {
 `ERROR_CODES` exports the client-side synthetic codes (`TRANSPORT`, `CONFIG`,
 `POLLING_TIMEOUT`) and the server `error.code` vocabulary (`NOT_FOUND`,
 `PLAN_LIMIT_EXCEEDED`, ...) so retry/breaker layers never restate code strings by
-hand.
+hand. A rejected API key arrives as `401` with `INVALID_API_KEY`,
+`API_KEY_DISABLED` or `API_KEY_EXPIRED`; `UNAUTHORIZED` means no credentials were
+sent.
 
 ## License
 

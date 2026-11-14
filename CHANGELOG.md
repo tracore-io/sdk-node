@@ -5,6 +5,24 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this SDK follo
 SemVer. Each entry notes the Tracore API contract version (`api-vX.Y.Z`) it was
 built from.
 
+## 0.4.0 — api-v0.7.0
+
+### Added
+
+- `ERROR_CODES.INVALID_API_KEY`, `API_KEY_DISABLED`, `API_KEY_EXPIRED`: the API now
+  reports why an API key was rejected. These 401s previously arrived as
+  `UNAUTHORIZED`, which is now used only when no credentials were sent. Code that
+  treats every 401 as an auth failure keeps working; code that compares
+  `error.code === ERROR_CODES.UNAUTHORIZED` for a bad key should check the new
+  codes as well.
+
+### Changed
+
+- The API no longer applies a per-key limit of 10 requests per 24 hours, so
+  server-to-server callers stop receiving 401 after their tenth call. Rate-limit
+  responses are `429` with `rate_limited` and a `Retry-After` header when the wait
+  is known.
+
 ## 0.3.1 — api-v0.6.0
 
 ### Changed
